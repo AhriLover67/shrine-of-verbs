@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Shrine of Verbs</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#2c2416;--ink2:#5a4a30;--ink3:#8a7a60;
+  --parch:#f5f0e8;--parch2:#ece5d4;--parch3:#ddd4be;
+  --stone:#c8bfa8;--stone2:#a89880;
+  --red:#c0392b;--red-l:#f5c6c2;
+  --yel:#c8960a;--yel-l:#faedc0;
+  --grn:#3a7d44;--grn-l:#c2e0c8;
+  --r:8px;--t:.18s ease;
+}
+body{font-family:Georgia,serif;background:var(--parch);color:var(--ink);min-height:100vh;overflow-x:hidden}
+h1,h2,h3{font-weight:400;letter-spacing:.03em}
+button{font-family:Georgia,serif;cursor:pointer;border:none;outline:none;transition:transform var(--t),background var(--t),box-shadow var(--t)}
+button:not(:disabled):hover{transform:translateY(-1px)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.screen{display:none;min-height:100vh;padding:2rem 1.5rem;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.monk-box{display:flex;gap:1rem;align-items:flex-start;background:var(--parch2);border:1px solid var(--stone);border-radius:var(--r);padding:1.2rem 1.4rem;max-width:640px;width:100%;margin-bottom:1.5rem}
+.monk-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--stone)}
+.monk-text{font-size:1rem;color:var(--ink2);line-height:1.65;font-style:italic}
+.monk-name{font-size:.75rem;color:var(--ink3);font-style:normal;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.08em}
+
+#s-title{justify-content:center;text-align:center;background:linear-gradient(180deg,#e8dfc8 0%,var(--parch) 60%)}
+.shrine-art{font-size:5rem;margin-bottom:1rem}
+#s-title h1{font-size:2.2rem;margin-bottom:.4rem}
+#s-title .sub{font-size:1rem;color:var(--ink2);margin-bottom:2rem;letter-spacing:.05em}
+.btn-primary{background:var(--ink);color:var(--parch);padding:.75rem 2.2rem;border-radius:var(--r);font-size:1rem;letter-spacing:.05em}
+.btn-primary:hover{background:#4a3820}
+.btn-secondary{background:transparent;color:var(--ink2);padding:.6rem 1.4rem;border-radius:var(--r);font-size:.9rem;border:1px solid var(--stone)}
+.btn-secondary:hover{background:var(--parch2)}
+.btn-danger{background:transparent;color:var(--red);padding:.5rem 1rem;border-radius:var(--r);font-size:.78rem;border:1px solid #e0a09a}
+.btn-danger:hover{background:#fce8e6}
+.ornament{color:var(--stone2);font-size:1.1rem;letter-spacing:.2em;margin:1rem 0;text-align:center}
+
+.btn-shrine-back{display:inline-flex;align-items:center;gap:.4rem;background:var(--parch2);color:var(--ink);border:1.5px solid var(--ink);border-radius:8px;padding:.5rem 1rem;font-family:Georgia,serif;font-size:.9rem;cursor:pointer;transition:background var(--t),transform var(--t),box-shadow var(--t);box-shadow:0 2px 4px rgba(44,36,22,.08)}
+.btn-shrine-back:hover{background:var(--ink);color:var(--parch);transform:translateY(-1px);box-shadow:0 4px 10px rgba(44,36,22,.18)}
+.shrine-back-wrap{width:100%;max-width:920px;margin-bottom:1rem;display:flex;justify-content:flex-start}
+.btn-back{background:transparent;color:var(--ink3);border:none;font-size:.85rem;text-decoration:underline;cursor:pointer;font-family:Georgia,serif;margin-top:.5rem}
+
+/* HUB */
+#s-hub{background:linear-gradient(180deg,#e8dfc8 0%,var(--parch) 60%);justify-content:center}
+.hub-grid{display:grid;grid-template-columns:1fr 1.6fr 1fr;grid-template-rows:auto auto;grid-template-areas:"knowledge top fame" "left center right";gap:1.2rem;width:100%;max-width:880px;align-items:stretch}
+.hub-knowledge{grid-area:knowledge}.hub-top{grid-area:top}.hub-fame{grid-area:fame}.hub-left{grid-area:left}.hub-center{grid-area:center}.hub-right{grid-area:right}
+@media(max-width:680px){.hub-grid{grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto auto;grid-template-areas:"center" "top" "left" "right" "knowledge" "fame"}}
+.hub-room{background:var(--parch2);border:1px solid var(--stone);border-radius:12px;padding:1.4rem 1.2rem;cursor:pointer;transition:transform var(--t),box-shadow var(--t),background var(--t),border-color var(--t);display:flex;flex-direction:column;gap:.4rem;height:100%;text-align:center;position:relative;overflow:hidden}
+.hub-room:hover:not(.locked){transform:translateY(-3px);box-shadow:0 6px 18px rgba(44,36,22,.15);background:#f0e8d4}
+.hub-room.locked{opacity:.5;cursor:not-allowed}
+.hub-room.center{background:linear-gradient(135deg,#f0e8d4,var(--parch2));border-color:var(--stone2);padding:2rem 1.4rem}
+.hub-room.center:hover{background:linear-gradient(135deg,#ece2c6,#f0e8d4)}
+.hub-room.unlocked-final{border-color:var(--grn);background:linear-gradient(135deg,var(--grn-l),var(--parch2));animation:pulse-soft 2.4s ease-in-out infinite}
+.hub-room.has-failures{border-color:#d49090;background:linear-gradient(135deg,#fae0dc,var(--parch2))}
+.hub-icon{font-size:2.2rem;margin-bottom:.2rem}
+.hub-room.center .hub-icon{font-size:3rem}
+.hub-name{font-size:1rem;color:var(--ink);font-weight:bold;letter-spacing:.02em}
+.hub-room.center .hub-name{font-size:1.3rem}
+.hub-tag{font-size:.78rem;color:var(--ink3);font-style:italic;line-height:1.4}
+.hub-stat{font-size:.72rem;color:var(--ink2);margin-top:.3rem;padding-top:.4rem;border-top:1px solid var(--stone)}
+.hub-stat.locked-stat{color:var(--ink3)}
+@keyframes pulse-soft{0%,100%{box-shadow:0 0 0 0 rgba(58,125,68,0)}50%{box-shadow:0 0 0 4px rgba(58,125,68,.15)}}
+
+/* COURTYARD */
+#s-monastery{background:var(--parch)}
+#s-monastery .top{width:100%;max-width:920px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}
+#s-monastery h2{font-size:1.4rem}
+.legend{display:flex;gap:.8rem;flex-wrap:wrap;font-size:.78rem;color:var(--ink2)}
+.legend-item{display:flex;align-items:center;gap:.35rem}
+.legend-dot{width:12px;height:12px;border-radius:50%;border:1px solid var(--stone2)}
+.counter-bar{width:100%;max-width:920px;font-size:.85rem;color:var(--ink2);margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+.selection-controls{width:100%;max-width:920px;background:var(--parch2);border:1px solid var(--stone);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1rem;display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between}
+.slider-wrap{display:flex;align-items:center;gap:.7rem;flex:1;min-width:240px}
+.slider-wrap label{font-size:.82rem;color:var(--ink2);white-space:nowrap}
+input[type="range"]{flex:1;accent-color:var(--ink)}
+.slider-val{font-size:.9rem;color:var(--ink);font-weight:bold;min-width:24px;text-align:center}
+.verb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;width:100%;max-width:920px;margin-bottom:1.5rem}
+.verb-card{padding:.55rem .7rem;border-radius:6px;border:1px solid var(--stone);background:var(--parch2);cursor:pointer;transition:transform var(--t),border-color var(--t),background var(--t),box-shadow var(--t);user-select:none;text-align:center;position:relative}
+.verb-card:hover:not(.s3){transform:translateY(-2px);border-color:var(--stone2);box-shadow:0 3px 8px rgba(44,36,22,.1)}
+.verb-card .v-word{font-size:.95rem;display:block}
+.verb-card .v-trans{font-size:.7rem;color:var(--ink3);display:block;margin-top:2px}
+.verb-card .v-stars{font-size:.65rem;color:var(--stone2);margin-top:3px;letter-spacing:1px;min-height:.85rem}
+.verb-card.s0{background:var(--parch2)}
+.verb-card.s1{background:var(--red-l);border-color:#e0a09a}
+.verb-card.s1 .v-word{color:var(--red)}
+.verb-card.s2{background:var(--yel-l);border-color:#d4b060}
+.verb-card.s2 .v-word{color:var(--yel)}
+.verb-card.s3{background:var(--grn-l);border-color:#7db885;cursor:default}
+.verb-card.s3 .v-word{color:var(--grn)}
+.verb-card.selected{outline:2px solid var(--ink);outline-offset:2px}
+.verb-card.in-failures::after{content:'';position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--red)}
+.start-study-bar{width:100%;max-width:920px;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;justify-content:space-between;margin-bottom:1.5rem}
+
+/* Start-button attention cue */
+@keyframes start-pulse{0%{box-shadow:0 0 0 0 rgba(58,125,68,.5);transform:translateY(0)}50%{box-shadow:0 0 0 12px rgba(58,125,68,0);transform:translateY(-2px)}100%{box-shadow:0 0 0 0 rgba(58,125,68,0);transform:translateY(0)}}
+.btn-pulsing{animation:start-pulse 1.4s ease-in-out infinite}
+#scroll-cue{position:fixed;left:0;right:0;bottom:0;height:90px;pointer-events:none;z-index:60;display:none;background:linear-gradient(to top,rgba(58,125,68,.28),rgba(58,125,68,0));animation:cue-glow 1.6s ease-in-out infinite}
+#scroll-cue.active{display:block}
+@keyframes cue-glow{0%,100%{opacity:.35}50%{opacity:.9}}
+#scroll-cue .cue-arrow{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);color:var(--grn);font-size:1.6rem;animation:cue-bounce 1.2s ease-in-out infinite}
+@keyframes cue-bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
+
+/* TRAINING / STUDY */
+#s-study{background:var(--parch)}
+.study-top{width:100%;max-width:580px;display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem}
+.study-verb-count{font-size:.85rem;color:var(--ink3)}
+.study-progress{display:flex;gap:5px;flex-wrap:wrap;width:100%;max-width:580px;margin-bottom:1.2rem}
+.spp{height:8px;border-radius:4px;background:var(--parch3);border:1px solid var(--stone);flex:1;min-width:18px;max-width:36px;transition:background .3s}
+.spp.done{background:var(--grn);border-color:var(--grn)}
+.spp.active{background:var(--yel);border-color:var(--yel)}
+.study-card{background:var(--parch2);border:1px solid var(--stone);border-radius:12px;padding:2rem;width:100%;max-width:580px;margin-bottom:1.2rem}
+.verb-prompt-label{font-size:.78rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;text-align:center;margin-bottom:.5rem}
+.verb-prompt{font-size:2rem;text-align:center;margin-bottom:.2rem}
+.translation-show{font-size:.85rem;color:var(--ink3);font-style:italic;text-align:center;margin-bottom:1.4rem}
+.forms-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;margin-bottom:1.2rem}
+@media(max-width:460px){.forms-grid{grid-template-columns:1fr}}
+.form-group label{font-size:.72rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px}
+.form-group input{width:100%;padding:.5rem .6rem;border:1px solid var(--stone);border-radius:5px;background:var(--parch);color:var(--ink);font-family:Georgia,serif;font-size:.95rem;transition:border-color var(--t)}
+.form-group input:focus{border-color:var(--stone2);outline:none}
+.form-group input.correct{background:#e6f4e8;border-color:var(--grn);color:var(--grn)}
+.form-group input.wrong{background:#fce8e6;border-color:var(--red);color:var(--red)}
+.form-group input.given{background:var(--parch3);color:var(--ink3)}
+.btn-row{display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem}
+.btn-check{background:var(--ink);color:var(--parch);padding:.6rem 2rem;border-radius:var(--r);font-size:.95rem}
+.btn-check:hover{background:#4a3820}
+.result-msg{text-align:center;font-size:.9rem;min-height:1.4rem;color:var(--ink2)}
+.failure-counter{font-size:.78rem;color:var(--red);font-style:italic;text-align:center;margin-bottom:1rem}
+
+/* INNER SHRINE */
+#s-shrine{background:var(--parch)}
+.shrine-card{background:var(--parch2);border:1px solid var(--stone);border-radius:12px;padding:1.5rem;width:100%;max-width:680px;margin-bottom:1rem}
+.shrine-verb-header{text-align:center;margin-bottom:1.2rem}
+.shrine-verb-header .label{font-size:.78rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem}
+.shrine-verb-header .word{font-size:2rem}
+.shrine-verb-header .trans{font-size:.85rem;color:var(--ink3);font-style:italic;margin-top:.2rem}
+.drop-zones{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;margin-bottom:1.5rem}
+@media(max-width:520px){.drop-zones{grid-template-columns:1fr}}
+.drop-zone{border:2px dashed var(--stone);border-radius:8px;padding:.7rem;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:var(--parch);transition:border-color var(--t),background var(--t)}
+.drop-zone .dz-label{font-size:.72rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem}
+.drop-zone.drag-over{border-color:var(--ink);background:#fff8e8}
+.drop-zone.filled{border-style:solid}
+.drop-zone.correct{border-color:var(--grn);background:#e6f4e8}
+.drop-zone.wrong{border-color:var(--red);background:#fce8e6}
+.chunk-pool{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;min-height:60px;padding:.7rem;background:var(--parch);border-radius:8px;border:1px solid var(--stone)}
+.chunk{padding:.45rem .9rem;background:var(--ink);color:var(--parch);border-radius:6px;cursor:grab;user-select:none;font-size:.95rem;transition:transform var(--t),opacity var(--t)}
+.chunk:hover{transform:translateY(-2px)}
+.chunk.dragging{opacity:.4}
+.shrine-progress{font-size:.85rem;color:var(--ink3);text-align:center;margin-bottom:.8rem}
+
+/* FINAL */
+#s-final-intro,#s-final{background:var(--parch)}
+.final-header{text-align:center;margin-bottom:1.2rem}
+.final-header h2{font-size:1.8rem;margin-bottom:.3rem}
+.final-header p{font-size:.9rem;color:var(--ink2)}
+.round-info{display:flex;gap:2rem;justify-content:center;margin-bottom:1rem;flex-wrap:wrap}
+.round-info .ri{text-align:center}
+.round-info .ri .num{font-size:1.5rem}
+.round-info .ri .lbl{font-size:.7rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.timer-bar-wrap{width:100%;max-width:560px;margin-bottom:1rem}
+.timer-bar{height:6px;background:var(--parch3);border-radius:3px;overflow:hidden;border:1px solid var(--stone)}
+.timer-bar-fill{height:100%;background:var(--grn);transition:width 1s linear,background .3s}
+.timer-bar-fill.warn{background:var(--yel)}
+.timer-bar-fill.danger{background:var(--red)}
+.timer-text{font-size:.78rem;color:var(--ink3);text-align:right;margin-top:3px}
+.final-card{background:var(--parch2);border:1px solid var(--stone);border-radius:12px;padding:2rem;width:100%;max-width:520px;text-align:center}
+.final-trans{font-size:.78rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
+.final-trans-word{font-size:2rem;margin-bottom:1.2rem}
+.final-forms{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;margin-bottom:1rem}
+@media(max-width:480px){.final-forms{grid-template-columns:1fr}}
+.final-forms input{width:100%;padding:.5rem;border:1px solid var(--stone);border-radius:5px;background:var(--parch);font-family:Georgia,serif;font-size:.95rem;text-align:center}
+.final-forms input:focus{border-color:var(--stone2);outline:none}
+.final-forms input.correct{background:#e6f4e8;border-color:var(--grn);color:var(--grn)}
+.final-forms input.wrong{background:#fce8e6;border-color:var(--red);color:var(--red)}
+.final-feedback{font-size:.9rem;min-height:1.4rem;margin-bottom:.6rem;color:var(--ink2)}
+
+/* ROUND BREAK */
+#s-round-break{background:var(--parch);justify-content:center}
+
+/* RESULTS */
+#s-final-results{background:linear-gradient(180deg,#e8dfc8 0%,var(--parch) 60%)}
+.score-display{font-size:3rem;color:var(--ink);text-align:center;margin:1rem 0}
+.round-breakdown{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;width:100%;max-width:480px;margin-bottom:1.5rem}
+@media(max-width:460px){.round-breakdown{grid-template-columns:1fr}}
+.round-card{background:var(--parch2);border:1px solid var(--stone);border-radius:8px;padding:.9rem;text-align:center}
+.round-card .rn{font-size:.72rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.round-card .rs{font-size:1.4rem;margin:.3rem 0}
+.round-card .rd{font-size:.78rem;color:var(--ink2)}
+.high-score-badge{background:linear-gradient(135deg,#d4af37,#f5e08a);color:var(--ink);padding:.4rem 1rem;border-radius:20px;font-size:.85rem;font-weight:bold;margin-bottom:1rem;display:inline-block}
+
+/* HALL OF FAME — div-based leaderboard */
+#s-hall-of-fame{background:var(--parch)}
+.fame-list{width:100%;max-width:820px;margin:0 auto}
+.lb{width:100%;border:2px solid var(--ink);border-radius:10px;overflow:hidden;box-shadow:0 4px 14px rgba(44,36,22,.1);background:var(--parch2)}
+.lb-head,.lb-row{display:grid;grid-template-columns:1.1fr 1.6fr .7fr .7fr .7fr 1fr;align-items:center}
+.lb-head{background:var(--ink);color:var(--parch)}
+.lb-head .lb-cell{padding:.85rem .6rem;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;text-align:center;border-right:1px solid #5a4a30}
+.lb-head .lb-cell:last-child{border-right:none}
+.lb-sort{cursor:pointer;transition:background var(--t),color var(--t);user-select:none}
+.lb-sort:hover{background:#4a3820;color:#f5e08a}
+.lb-sort.active{background:#3d2f1a;color:#f5e08a}
+.lb-row{border-top:1px solid var(--stone);transition:background var(--t)}
+.lb-row:hover{background:var(--parch3)}
+.lb-row .lb-cell{padding:.7rem .6rem;font-size:.9rem;color:var(--ink2);text-align:center;border-right:1px solid var(--stone)}
+.lb-row .lb-cell:last-child{border-right:none}
+.lb-attempt{font-weight:bold;color:var(--ink)!important}
+.lb-date{font-size:.78rem!important;color:var(--ink3)!important}
+.lb-final{font-weight:bold;color:var(--ink)!important;font-size:1.05rem!important}
+.lb-row.crown{background:linear-gradient(90deg,#fff4d4,#faedc0)}
+.lb-row.crown:hover{background:linear-gradient(90deg,#ffeab8,#f0e0a8)}
+.lb-row.crown .lb-attempt,.lb-row.crown .lb-final{color:#8a6a00!important}
+@media(max-width:560px){.lb-head .lb-cell{padding:.5rem .3rem;font-size:.62rem}.lb-row .lb-cell{padding:.5rem .3rem;font-size:.76rem}.lb-date{font-size:.64rem!important}.lb-final{font-size:.85rem!important}}
+
+/* HALL OF KNOWLEDGE */
+#s-knowledge-intro,#s-knowledge-select,#s-knowledge{background:var(--parch);justify-content:flex-start}
+#s-knowledge-intro{justify-content:center}
+
+/* MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(44,36,22,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem}
+.modal-backdrop.active{display:flex;animation:fadeIn .2s ease}
+.modal{background:var(--parch);border:1px solid var(--stone);border-radius:12px;padding:1.6rem;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.modal h3{font-size:1.2rem;margin-bottom:.6rem}
+.modal p{color:var(--ink2);margin-bottom:1.2rem;font-size:.92rem}
+.modal-btns{display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap}
+
+/* TEACHER */
+.teacher-toggle{position:fixed;bottom:12px;right:12px;background:var(--ink);color:var(--parch);font-size:.78rem;padding:.5rem .9rem;border-radius:6px;cursor:pointer;z-index:50;font-family:Georgia,serif;border:none;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:background var(--t)}
+.teacher-toggle:hover{background:#4a3820}
+.teacher-modal{max-width:680px}
+.teacher-section{margin-bottom:1.4rem;padding-bottom:1.2rem;border-bottom:1px solid var(--stone)}
+.teacher-section:last-child{border-bottom:none}
+.teacher-section h4{font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:.6rem}
+.teacher-actions{display:flex;flex-wrap:wrap;gap:.5rem}
+.teacher-actions button{padding:.5rem 1rem;font-size:.85rem;border-radius:6px;font-family:Georgia,serif;cursor:pointer;border:1px solid var(--stone);background:var(--parch2);color:var(--ink);transition:background var(--t)}
+.teacher-actions button:hover{background:#f0e8d4}
+.teacher-actions button.danger{border-color:#e0a09a;color:var(--red)}
+.teacher-actions button.danger:hover{background:#fce8e6}
+.teacher-actions button.primary{background:var(--ink);color:var(--parch);border-color:var(--ink)}
+.teacher-actions button.primary:hover{background:#4a3820}
+.teacher-verbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.4rem;max-height:300px;overflow-y:auto;border:1px solid var(--stone);border-radius:6px;padding:.5rem;background:var(--parch2)}
+.tv-row{display:flex;align-items:center;gap:.4rem;padding:.3rem .4rem;border-radius:4px;font-size:.78rem}
+.tv-row .tv-name{flex:1;font-weight:bold}
+.tv-row.s0{background:transparent}.tv-row.s1{background:var(--red-l)}.tv-row.s2{background:var(--yel-l)}.tv-row.s3{background:var(--grn-l)}
+.tv-stars{display:flex;gap:2px}
+.tv-stars button{width:18px;height:18px;padding:0;border:1px solid var(--stone);background:var(--parch);font-size:.7rem;cursor:pointer;border-radius:3px}
+.tv-stars button.active{background:var(--ink);color:var(--parch);border-color:var(--ink)}
+.tv-fail-toggle{font-size:.65rem;padding:.2rem .4rem;border:1px solid var(--stone);background:var(--parch);cursor:pointer;border-radius:3px}
+.tv-fail-toggle.active{background:var(--red);color:#fff;border-color:var(--red)}
+.teacher-search{width:100%;padding:.5rem .7rem;border:1px solid var(--stone);border-radius:5px;background:var(--parch2);font-family:Georgia,serif;font-size:.88rem;margin-bottom:.5rem}
+.teacher-search:focus{outline:none;border-color:var(--stone2)}
+#teacher-banner{display:none;width:100%;background:var(--ink);color:var(--parch);text-align:center;padding:.4rem;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;position:sticky;top:0;z-index:40}
+body.teacher-mode #teacher-banner{display:block}
+</style>
+</head>
+<body>
+
+<div id="teacher-banner">👨‍🏫 Teacher Mode Active — Use the button at bottom-right to return to Student Mode (changes will be reverted)</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="modal">
+    <h3 id="confirm-title">Are you sure?</h3>
+    <p id="confirm-text">This action cannot be undone.</p>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-primary" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEACHER PASSWORD MODAL -->
+<div class="modal-backdrop" id="teacher-pw-modal">
+  <div class="modal" style="max-width:420px">
+    <h3>Teacher Mode</h3>
+    <p>Enter the teacher password to continue. Any changes made in teacher mode will be reverted when you return to student mode.</p>
+    <input type="password" id="teacher-pw-input" class="teacher-search" style="margin-bottom:1rem" placeholder="Password" onkeydown="if(event.key==='Enter')submitTeacherPw();else if(event.key==='Escape')closeTeacherPw()">
+    <div id="teacher-pw-error" style="color:var(--red);font-size:.85rem;margin-bottom:.6rem;min-height:1.2rem"></div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeTeacherPw()">Cancel</button>
+      <button class="btn-primary" onclick="submitTeacherPw()">Enter</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEACHER PANEL MODAL -->
+<div class="modal-backdrop" id="teacher-modal">
+  <div class="modal teacher-modal">
+    <h3>Teacher Panel</h3>
+    <p style="font-size:.85rem">Adjust progress, jump into rooms, and reset state without going through the student flow.</p>
+    <div class="teacher-section">
+      <h4>Quick Navigation</h4>
+      <div class="teacher-actions">
+        <button class="primary" onclick="closeTeacher();goTo('s-hub')">Hub</button>
+        <button class="primary" onclick="closeTeacher();goTo('s-monastery')">Courtyard</button>
+        <button class="primary" onclick="teacherJumpInner()">Inner Shrine</button>
+        <button class="primary" onclick="teacherJumpFinal()">Final Challenge</button>
+        <button class="primary" onclick="teacherJumpFailures()">Room of Failures</button>
+      </div>
+    </div>
+    <div class="teacher-section">
+      <h4>Bulk Actions</h4>
+      <div class="teacher-actions">
+        <button onclick="teacherSetAll(0)">All Untouched</button>
+        <button onclick="teacherSetAll(1)">All Red</button>
+        <button onclick="teacherSetAll(2)">All Yellow</button>
+        <button onclick="teacherSetAll(3)">All Mastered</button>
+        <button class="danger" onclick="teacherClearFailures()">Clear All Failures</button>
+        <button class="danger" onclick="teacherResetAll()">Reset Everything</button>
+      </div>
+    </div>
+    <div class="teacher-section">
+      <h4>Per-Verb Control</h4>
+      <input type="text" class="teacher-search" id="teacher-search" placeholder="Search verbs..." oninput="renderTeacherVerbs()">
+      <div class="teacher-verbs" id="teacher-verbs"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="closeTeacher()">Close</button>
+    </div>
+  </div>
+</div>
+
+<button class="teacher-toggle" id="teacher-toggle" onclick="exitTeacherMode()" title="Return to Student Mode" style="display:none">↩ Return to Student Mode</button>
+
+<!-- Scroll-down cue -->
+<div id="scroll-cue"><div class="cue-arrow">⌄</div></div>
+
+<!-- TITLE -->
+<div id="s-title" class="screen active">
+  <div class="shrine-art">⛩️</div>
+  <h1>The Shrine of Verbs</h1>
+  <p class="sub">A path of memory and mastery</p>
+  <div class="monk-box" style="max-width:480px">
+    <img class="monk-avatar" src="" alt="Master Wuming">
+    <div>
+      <div class="monk-name">Master Wuming</div>
+      <div class="monk-text">"Greetings, child. The verbs you seek do not bend to rules — they bend only to memory. Walk the courtyard. Train. Return. The path is yours."</div>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="goTo('s-hub')">Enter the Shrine</button>
+</div>
+
+<!-- HUB -->
+<div id="s-hub" class="screen">
+  <div style="text-align:center;margin-bottom:1.5rem">
+    <h2 style="font-size:1.6rem">The Shrine</h2>
+    <p style="font-size:.85rem;color:var(--ink3);font-style:italic;margin-top:.3rem">Choose your path</p>
+  </div>
+  <div class="hub-grid">
+    <div class="hub-slot hub-knowledge" id="hub-knowledge"></div>
+    <div class="hub-slot hub-top" id="hub-inner"></div>
+    <div class="hub-slot hub-fame" id="hub-fame"></div>
+    <div class="hub-slot hub-left" id="hub-failures"></div>
+    <div class="hub-slot hub-center" id="hub-courtyard"></div>
+    <div class="hub-slot hub-right" id="hub-final"></div>
+  </div>
+  <div id="hub-monk-box" class="monk-box" style="max-width:560px;display:none;margin-top:1.5rem">
+    <img class="monk-avatar" src="" alt="Master Wuming">
+    <div>
+      <div class="monk-name">Master Wuming</div>
+      <div class="monk-text" id="hub-monk-text"></div>
+    </div>
+  </div>
+  <button class="btn-shrine-back" onclick="goTo('s-title')" style="margin-top:1rem">← Leave the Shrine</button>
+</div>
+
+<!-- COURTYARD -->
+<div id="s-monastery" class="screen">
+  <div class="shrine-back-wrap">
+    <button class="btn-shrine-back" onclick="goTo('s-hub')">⛩️ Back to the Shrine</button>
+  </div>
+  <div class="top">
+    <div>
+      <h2>⛩️ The Courtyard</h2>
+      <div style="font-size:.82rem;color:var(--ink3);margin-top:4px">Select verbs and begin your training</div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--parch2)"></div>Untouched</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red-l);border-color:#e0a09a"></div>Once</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--yel-l);border-color:#d4b060"></div>Twice</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--grn-l);border-color:#7db885"></div>Mastered</div>
+    </div>
+  </div>
+  <div class="counter-bar">
+    <span id="selected-count">0 selected</span>
+    <span id="mastered-count">0 / 107 mastered</span>
+  </div>
+  <div class="selection-controls">
+    <div class="slider-wrap">
+      <label>Selection limit:</label>
+      <input type="range" id="sel-slider" min="5" max="20" value="10" oninput="onSliderChange()">
+      <span class="slider-val" id="sel-slider-val">10</span>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn-secondary" onclick="selectRandom()">Pick at Random</button>
+      <button class="btn-secondary" onclick="selectRandomByStage(1)" style="border-color:#e0a09a;color:var(--red)">Random Red</button>
+      <button class="btn-secondary" onclick="selectRandomByStage(2)" style="border-color:#d4b060;color:var(--yel)">Random Yellow</button>
+      <button class="btn-secondary" onclick="selectRandomByStage('rg')">Random Not-Mastered</button>
+      <button class="btn-secondary" onclick="clearSelection()">Clear</button>
+    </div>
+  </div>
+  <div class="verb-grid" id="verb-grid"></div>
+  <div class="start-study-bar">
+    <button class="btn-primary" id="btn-start-study" onclick="startStudy()" disabled>Train at the Grounds (0)</button>
+    <button class="btn-danger" onclick="resetProgress()">Reset Progress</button>
+  </div>
+  <div id="monk-monastery" class="monk-box" style="display:none">
+    <img class="monk-avatar" src="" alt="Master Wuming">
+    <div>
+      <div class="monk-name">Master Wuming</div>
+      <div class="monk-text" id="monk-monastery-text"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TRAINING GROUNDS -->
+<div id="s-study" class="screen">
+  <div class="shrine-back-wrap" style="max-width:580px">
+    <button class="btn-shrine-back" onclick="goTo('s-hub')">⛩️ Back to the Shrine</button>
+  </div>
+  <div class="study-top">
+    <div class="study-verb-count" id="study-verb-count">Verb 1 of 10</div>
+  </div>
+  <div class="study-progress" id="study-progress"></div>
+  <div id="failure-counter" class="failure-counter" style="display:none"></div>
+  <div class="study-card">
+    <div class="verb-prompt-label">Complete the missing forms</div>
+    <div class="verb-prompt" id="prompt-word">–</div>
+    <div class="translation-show" id="prompt-trans"></div>
+    <div class="forms-grid">
+      <div class="form-group"><label>Infinitive</label><input type="text" id="f-inf" placeholder="…" autocomplete="off" spellcheck="false" onkeydown="handleStudyEnter(event)"></div>
+      <div class="form-group"><label>Past Simple</label><input type="text" id="f-ps" placeholder="…" autocomplete="off" spellcheck="false" onkeydown="handleStudyEnter(event)"></div>
+      <div class="form-group"><label>Past Participle</label><input type="text" id="f-pp" placeholder="…" autocomplete="off" spellcheck="false" onkeydown="handleStudyEnter(event)"></div>
+    </div>
+    <div class="btn-row"><button class="btn-check" onclick="checkAnswer()">Check</button></div>
+    <div class="result-msg" id="result-msg"></div>
+  </div>
+</div>
+
+<!-- INNER SHRINE -->
+<div id="s-shrine" class="screen">
+  <div class="shrine-back-wrap" style="max-width:680px">
+    <button class="btn-shrine-back" onclick="goTo('s-hub')">⛩️ Back to the Shrine</button>
+  </div>
+  <div class="study-top">
+    <div class="study-verb-count" id="shrine-verb-count">Verb 1 of 7</div>
+  </div>
+  <div class="shrine-progress" id="shrine-progress-text">Drag the right form into each box</div>
+  <div class="shrine-card">
+    <div class="shrine-verb-header">
+      <div class="label">Place the forms of</div>
+      <div class="word" id="shrine-verb-trans">–</div>
+      <div class="trans" id="shrine-verb-rus">–</div>
+    </div>
+    <div class="drop-zones" id="drop-zones"></div>
+    <div class="chunk-pool" id="chunk-pool"></div>
+    <div class="result-msg" id="shrine-result" style="margin-top:1rem"></div>
+  </div>
+</div>
+
+<!-- FINAL INTRO -->
+<div id="s-final-intro" class="screen">
+  <div style="text-align:center;margin-bottom:1.5rem">
+    <div style="font-size:3.5rem;margin-bottom:.8rem">⚔️</div>
+    <h2 style="font-size:1.8rem;margin-bottom:.4rem">The Final Challenge</h2>
+  </div>
+  <div class="monk-box" style="max-width:560px">
+    <img class="monk-avatar" src="" alt="Master Wuming">
+    <div>
+      <div class="monk-name">Master Wuming</div>
+      <div class="monk-text">"Three rounds. Ten verbs each. Forty seconds per verb. You will see the Russian — you will write all three forms in English. No hints. No mercy. Fail a verb, and it falls back to the beginning, marked for the Room of Failures."</div>
+    </div>
+  </div>
+  <div class="ornament">✦ ✦ ✦</div>
+  <p style="text-align:center;color:var(--ink2);font-size:.9rem;max-width:440px;margin-bottom:1rem">Each form is worth 1 point. Each round is out of 30. Your final score averages the three rounds.</p>
+  <p id="prev-high-score" style="text-align:center;font-size:.9rem;color:var(--ink2);margin-bottom:1.5rem;display:none">Your high score: <strong id="hs-display">–</strong></p>
+  <div style="display:flex;gap:1rem">
+    <button class="btn-primary" onclick="startFinal()">Begin the Trial</button>
+    <button class="btn-shrine-back" onclick="goTo('s-hub')">⛩️ Back to the Shrine</button>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div id="s-final" class="screen">
+  <div class="final-header">
+    <h2 id="final-round-title">Round 1</h2>
+    <p>Type all three forms — Infinitive, Past Simple, Past Participle</p>
+  </div>
+  <div class="round-info">
+    <div class="ri"><div class="num" id="fc-q">1/10</div><div class="lbl">Question</div></div>
+    <div class="ri"><div class="num" id="fc-correct">0</div><div class="lbl">Points (round)</div></div>
+    <div class="ri"><div class="num" id="fc-round">1/3</div><div class="lbl">Round</div></div>
+  </div>
+  <div class="timer-bar-wrap">
+    <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
+    <div class="timer-text" id="timer-text">40s</div>
+  </div>
+  <div class="final-card">
+    <div class="final-trans">Russian</div>
+    <div class="final-trans-word" id="final-rus">–</div>
+    <div class="final-forms">
+      <div><label style="font-size:.7rem;color:var(--ink3);text-transform:uppercase">Infinitive</label><input type="text" id="ff-inf" autocomplete="off" spellcheck="false" onkeydown="handleFinalEnter(event)"></div>
+      <div><label style="font-size:.7rem;color:var(--ink3);text-transform:uppercase">Past Simple</label><input type="text" id="ff-ps" autocomplete="off" spellcheck="false" onkeydown="handleFinalEnter(event)"></div>
+      <div><label style="font-size:.7rem;color:var(--ink3);text-transform:uppercase">Past Participle</label><input type="text" id="ff-pp" autocomplete="off" spellcheck="false" onkeydown="handleFinalEnter(event)"></div>
+    </div>
+    <div class="final-feedback" id="final-feedback"></div>
+    <button class="btn-check" onclick="submitFinalAnswer()">Submit</button>
+  </div>
+</div>
+
+<!-- ROUND BREAK -->
+<div id="s-round-break" class="screen">
+  <div style="text-align:center">
+    <div style="font-size:.85rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem" id="break-just-finished">Round 1 complete</div>
+    <h2 style="font-size:1.8rem;margin-bottom:.4rem">Catch your breath</h2>
+    <p style="color:var(--ink2);font-size:.9rem;margin-bottom:1.5rem" id="break-next-up">Round 2 begins shortly</p>
+    <div style="font-size:4rem;color:var(--ink);margin-bottom:1rem" id="break-countdown">5</div>
+    <div class="monk-box" style="max-width:480px;margin:0 auto">
+      <img class="monk-avatar" src="" alt="Master Wuming">
+      <div>
+        <div class="monk-name">Master Wuming</div>
+        <div class="monk-text" id="break-monk-text">"Steady the breath. The path continues."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL RESULTS -->
+<div id="s-final-results" class="screen">
+  <div style="text-align:center;margin-bottom:1rem">
+    <div style="font-size:3rem">🏆</div>
+    <h2>The Trial is Over</h2>
+  </div>
+  <div id="hs-badge-wrap"></div>
+  <div class="score-display" id="final-score-display">0%</div>
+  <div class="round-breakdown" id="round-breakdown"></div>
+  <div class="monk-box" style="max-width:520px">
+    <img class="monk-avatar" src="" alt="Master Wuming">
+    <div>
+      <div class="monk-name">Master Wuming</div>
+      <div class="monk-text" id="final-monk-text">–</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+    <button class="btn-primary" onclick="goTo('s-hub')">Return to the Shrine</button>
+  </div>
+</div>
+
+<!-- HALL OF FAME -->
+<div id="s-hall-of-fame" class="screen">
+  <div class="shrine-back-wrap" style="max-width:820px">
+    <button class="btn-shrine-back" onclick="goTo('s-hub')">⛩️ Back to the Shrine</button>
+  </div>
+  <div style="text-align:center;margin-bottom:1.5rem">
+    <div style="font-size:3rem;margin-bottom:.5rem">🏅</div>
+    <h2 style="font-size:1.6rem">Hall of Fame</h2>
+    <p style="font-size:.85rem;color:var(--ink3);font-style:italic;margin-top:.3rem">Every Final Challenge attempt</p>
+  </div>
+  <div id="fame-list" class="fame-list"></div>
+  <div id="fame-empty" style="display:none;text-align:center;color:var(--ink3);font-style:italic;margin-top:2rem">No attempts yet. Walk the Final Challenge to begin building your record.</div>
+</div>
+
+<!-- HALL OF KNOWLEDGE - INTRO -->
+<div id="s-knowledge-intro" class="screen">
+  <div class="shrine-back-wrap" style="max-width:560px">
+    <button class="btn-shrine-back" onclick="goTo('s-hub')">⛩️ Back to the Shrine</button>
+  </div>
+  <div style="text-align:center;margin-bottom:1.5rem">
+    <div style="font-size:3rem;margin-bottom:.5rem">📜</div>
+    <h2 style="font-size:1.6rem">Hall of Knowledge</h2>
+  </div>
+  <div class="monk-box" style="max-width:560px">
+    <img class="monk-avatar" src="" alt="Master Wuming">
+    <div>
+      <div class="monk-name">Master Wuming</div>
+      <div class="monk-text">"It is not all about the training, child. It is also about gaining knowledge. Walk among the verbs at your own pace — flip them, study them, learn them."</div>
+    </div>
+  </div>
+  <div class="ornament">✦ ✦ ✦</div>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+    <button class="btn-primary" onclick="startKnowledgeAll()">Study All</button>
+    <button class="btn-secondary" onclick="goTo('s-knowledge-select')">Select Verbs</button>
+  </div>
+</div>
+
+<!-- HALL OF KNOWLEDGE - SELECT -->
+<div id="s-knowledge-select" class="screen">
+  <div class="shrine-back-wrap">
+    <button class="btn-shrine-back" onclick="goTo('s-knowledge-intro')">← Back to Hall of Knowledge</button>
+  </div>
+  <div class="study-top" style="max-width:920px;width:100%">
+    <h2 style="font-size:1.3rem">Choose your verbs</h2>
+  </div>
+  <div style="font-size:.82rem;color:var(--ink3);width:100%;max-width:920px;margin-bottom:.8rem" id="kn-sel-count">0 selected</div>
+  <div class="selection-controls">
+    <div class="slider-wrap">
+      <label>Pick at random:</label>
+      <input type="range" id="kn-slider" min="5" max="30" value="10" oninput="onKnSliderChange()">
+      <span class="slider-val" id="kn-slider-val">10</span>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn-secondary" onclick="knSelectRandom()">Pick at Random</button>
+      <button class="btn-secondary" onclick="knClearSelection()">Clear</button>
+    </div>
+  </div>
+  <div class="verb-grid" id="kn-verb-grid"></div>
+  <div class="start-study-bar">
+    <button class="btn-primary" id="kn-start-btn" onclick="startKnowledgeSelected()" disabled>Study Selected (0)</button>
+  </div>
+</div>
+
+<!-- HALL OF KNOWLEDGE - FLASHCARDS -->
+<div id="s-knowledge" class="screen">
+  <div class="shrine-back-wrap" style="max-width:580px">
+    <button class="btn-shrine-back" onclick="goTo('s-hub')">⛩️ Back to the Shrine</button>
+  </div>
+  <div class="study-top" style="max-width:580px;width:100%">
+    <div class="study-verb-count" id="kn-count">Card 1 of 107</div>
+  </div>
+  <div id="flashcard-mount" style="position:relative;width:100%;max-width:520px;height:440px;margin:0 auto"></div>
+  <button class="btn-primary" onclick="nextFlashcard()" style="margin-top:1.2rem">Next Target →</button>
+</div>
+
+<script>
+'use strict';
+
+const VERBS=[
+  ["be","was / were","been","быть"],["beat","beat","beaten","бить, побеждать"],
+  ["become","became","become","становиться"],["begin","began","begun","начинать"],
+  ["bend","bent","bent","сгибать"],["bite","bit","bitten","кусать"],
+  ["blow","blew","blown","дуть"],["break","broke","broken","ломать"],
+  ["bring","brought","brought","приносить"],["build","built","built","строить"],
+  ["burn","burnt / burned","burnt / burned","гореть, жечь"],["buy","bought","bought","покупать"],
+  ["catch","caught","caught","ловить"],["choose","chose","chosen","выбирать"],
+  ["come","came","come","приходить"],["cost","cost","cost","стоить"],
+  ["cut","cut","cut","резать"],["deal","dealt","dealt","заниматься"],
+  ["dig","dug","dug","копать"],["do","did","done","делать, выполнять"],
+  ["draw","drew","drawn","рисовать"],["dream","dreamt / dreamed","dreamt / dreamed","мечтать"],
+  ["drink","drank","drunk","пить"],["drive","drove","driven","водить"],
+  ["eat","ate","eaten","есть"],["fall","fell","fallen","падать"],
+  ["feel","felt","felt","чувствовать"],["fight","fought","fought","сражаться"],
+  ["find","found","found","находить"],["fly","flew","flown","летать"],
+  ["forget","forgot","forgotten","забывать"],["forgive","forgave","forgiven","прощать"],
+  ["freeze","froze","frozen","замерзать"],["get","got","got / gotten","получать"],
+  ["give","gave","given","давать"],["go","went","gone","идти"],
+  ["grow","grew","grown","расти"],["hang","hung","hung","вешать"],
+  ["have","had","had","иметь"],["hear","heard","heard","слышать"],
+  ["hide","hid","hidden","прятать"],["hit","hit","hit","ударять"],
+  ["hold","held","held","держать"],["hurt","hurt","hurt","болеть, причинять боль"],
+  ["keep","kept","kept","хранить"],["know","knew","known","знать"],
+  ["lay","laid","laid","класть"],["lead","led","led","вести"],
+  ["learn","learnt / learned","learnt / learned","учиться"],["leave","left","left","уходить"],
+  ["lend","lent","lent","одалживать"],["let","let","let","позволять"],
+  ["lie","lay","lain","лежать"],["light","lit","lit","зажигать"],
+  ["lose","lost","lost","терять"],["make","made","made","делать, создавать"],
+  ["mean","meant","meant","означать"],["meet","met","met","встречать"],
+  ["mistake","mistook","mistaken","ошибаться"],["pay","paid","paid","платить"],
+  ["put","put","put","класть"],["read","read","read","читать"],
+  ["ride","rode","ridden","ездить"],["ring","rang","rung","звонить"],
+  ["rise","rose","risen","подниматься"],["run","ran","run","бегать"],
+  ["say","said","said","сказать"],["see","saw","seen","видеть"],
+  ["sell","sold","sold","продавать"],["send","sent","sent","посылать"],
+  ["set","set","set","устанавливать"],["shake","shook","shaken","трясти"],
+  ["shine","shone","shone","светить"],["shoot","shot","shot","стрелять"],
+  ["show","showed","shown","показывать"],["shut","shut","shut","закрывать"],
+  ["sing","sang","sung","петь"],["sink","sank","sunk","тонуть"],
+  ["sit","sat","sat","сидеть"],["sleep","slept","slept","спать"],
+  ["smell","smelt / smelled","smelt / smelled","пахнуть"],["speak","spoke","spoken","говорить"],
+  ["spend","spent","spent","тратить"],["spill","spilt / spilled","spilt / spilled","проливать"],
+  ["spread","spread","spread","распространять"],["stand","stood","stood","стоять"],
+  ["steal","stole","stolen","красть"],["stick","stuck","stuck","прилипать"],
+  ["sting","stung","stung","жалить"],["strike","struck","struck / stricken","поразить ударом"],
+  ["swear","swore","sworn","клясться"],["sweep","swept","swept","подметать"],
+  ["swim","swam","swum","плавать"],["swing","swung","swung","качать"],
+  ["take","took","taken","брать"],["teach","taught","taught","преподавать"],
+  ["tear","tore","torn","рвать"],["tell","told","told","рассказывать"],
+  ["think","thought","thought","думать"],["throw","threw","thrown","бросать"],
+  ["understand","understood","understood","понимать"],["wake","woke","woken","просыпаться"],
+  ["wear","wore","worn","носить"],["win","won","won","побеждать"],
+  ["wind","wound","wound","заводить"],["withdraw","withdrew","withdrawn","снимать деньги"],
+  ["write","wrote","written","писать"],["spell","spelt / spelled","spelt / spelled","писать по буквам"],
+  ["split","split","split","поделить"],["shed","shed","shed","сбрасывать"]
+];
+
+const SUN_TZU=[
+  "\"Supreme excellence consists in breaking the enemy's resistance without fighting.\" — Sun Tzu",
+  "\"The greatest victory is that which requires no battle.\" — Sun Tzu",
+  "\"Know yourself and you will win all battles.\" — Sun Tzu",
+  "\"In the midst of chaos, there is also opportunity.\" — Sun Tzu",
+  "\"He who knows when he can fight and when he cannot will be victorious.\" — Sun Tzu",
+  "\"The wise warrior avoids the battle. The foolish one invites it.\" — Sun Tzu",
+  "\"Opportunities multiply as they are seized.\" — Sun Tzu",
+  "\"Move swift as the wind, still as the mountain.\" — Sun Tzu",
+  "\"All warfare is based on deception. All learning is based on honesty.\" — Sun Tzu",
+  "\"Victory comes from finding opportunities in problems.\" — Sun Tzu"
+];
+
+const STORAGE_KEY='shrine_of_verbs_v3';
+const DEFAULT_STATE={
+  progress:Array(VERBS.length).fill(0),
+  failures:{},
+  highScore:null,
+  highScoreBreakdown:null,
+  hallOfFame:[]
+};
+let state=loadState();
+let selected=new Set();
+let selLimit=10;
+let monkImgSrc='';
+let studyQueue=[],studyIdx=0,studyPromptField=0,studyMode='normal',studyLocked=false;
+let shrineQueue=[],shrineIdx=0,shrineCurrent=null;
+let final={round:0,qIdx:0,questions:[],roundCorrect:[0,0,0],totalCorrect:0,timer:null,timeLeft:40,answered:false,usedVerbs:new Set()};
+let breakTimer=null;
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    const parsed=JSON.parse(raw);
+    if(!Array.isArray(parsed.progress)||parsed.progress.length!==VERBS.length){
+      return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+    if(parsed.failures&&typeof parsed.failures==='object'){
+      Object.keys(parsed.failures).forEach(k=>{
+        const v=parsed.failures[k];
+        if(typeof v==='number') parsed.failures[k]={count:v,wrongForms:[]};
+        else if(v&&typeof v==='object'&&!Array.isArray(v.wrongForms)) v.wrongForms=[];
+      });
+    }
+    if(!Array.isArray(parsed.hallOfFame)) parsed.hallOfFame=[];
+    return Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)),parsed);
+  }catch(e){
+    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+  }
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
+  catch(e){ console.warn('Could not save state:',e); }
+}
+function resetProgress(){
+  showConfirm('Reset all progress?','This will erase mastery, failures, and the high score. The monk image is preserved.',()=>{
+    state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+    saveState();
+    selected.clear();
+    renderGrid();
+    showMonkMsg('The path begins anew, child. Walk it without regret.');
+  });
+}
+
+// MONK IMAGE
+(function initMonkImg(){
+  const stored=localStorage.getItem(STORAGE_KEY+'_monk_img');
+  if(stored){ monkImgSrc=stored; setAllMonkImgs(monkImgSrc); return; }
+  const c=document.createElement('canvas');c.width=128;c.height=128;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#c8bfa8';ctx.beginPath();ctx.arc(64,64,64,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#5a4a30';ctx.font='bold 14px Georgia';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('Click',64,58);ctx.fillText('to upload',64,74);
+  monkImgSrc=c.toDataURL();
+  setAllMonkImgs(monkImgSrc);
+})();
+function setAllMonkImgs(src){ document.querySelectorAll('.monk-avatar').forEach(img=>img.src=src); }
+document.addEventListener('click',function(e){
+  if(e.target.classList.contains('monk-avatar')){
+    const inp=document.createElement('input');
+    inp.type='file';inp.accept='image/*';
+    inp.onchange=function(){
+      const f=inp.files[0];if(!f)return;
+      const r=new FileReader();
+      r.onload=ev=>{ monkImgSrc=ev.target.result;setAllMonkImgs(monkImgSrc);try{localStorage.setItem(STORAGE_KEY+'_monk_img',monkImgSrc);}catch(e){} };
+      r.readAsDataURL(f);
+    };
+    inp.click();
+  }
+});
+
+// NAVIGATION
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='s-monastery'){ renderGrid(); initStartBtnObserver(); }
+  if(id!=='s-monastery'){ hideStartCue(); }
+  if(id==='s-hub'){ renderHub(); }
+  if(id==='s-final-intro') updateHighScoreDisplay();
+  if(id==='s-hall-of-fame'){ setFameView('score'); }
+  if(id==='s-knowledge-select'){ knSelected.clear(); renderKnGrid(); }
+  if(id!=='s-final'&&final.timer){ clearInterval(final.timer); final.timer=null; }
+  if(id!=='s-round-break'&&id!=='s-final'&&breakTimer){ clearInterval(breakTimer); breakTimer=null; }
+}
+function updateHighScoreDisplay(){
+  const wrap=document.getElementById('prev-high-score');
+  if(state.highScore!=null){ wrap.style.display='block'; document.getElementById('hs-display').textContent=state.highScore+'%'; }
+  else { wrap.style.display='none'; }
+}
+
+// GRID
+function renderGrid(){
+  const grid=document.getElementById('verb-grid');
+  grid.innerHTML='';
+  VERBS.forEach((v,i)=>{
+    const d=document.createElement('div');
+    let cls='verb-card s'+state.progress[i];
+    if(selected.has(i)) cls+=' selected';
+    if(state.failures[i]!=null) cls+=' in-failures';
+    d.className=cls;
+    const stars=['','★','★★','★★★'][state.progress[i]];
+    d.innerHTML='<span class="v-word">'+v[0]+'</span><span class="v-trans">'+russianFor(v)+'</span><span class="v-stars">'+stars+'</span>';
+    d.onclick=()=>toggleVerb(i);
+    grid.appendChild(d);
+  });
+  updateCounters();
+}
+function toggleVerb(i){
+  if(state.progress[i]===3) return;
+  if(selected.has(i)){ selected.delete(i); }
+  else{
+    if(selected.size>=selLimit){ showMonkMsg('The limit is '+selLimit+', child. Adjust the slider if you wish to carry more.'); return; }
+    selected.add(i);
+  }
+  renderGrid();
+}
+function updateCounters(){
+  document.getElementById('selected-count').textContent=selected.size+' selected';
+  const m=state.progress.filter(p=>p===3).length;
+  document.getElementById('mastered-count').textContent=m+' / '+VERBS.length+' mastered';
+  const btn=document.getElementById('btn-start-study');
+  btn.disabled=selected.size===0;
+  btn.textContent='Train at the Grounds ('+selected.size+')';
+  manageStartCue();
+}
+function selectRandom(){
+  selected.clear();
+  const avail=VERBS.map((_,i)=>i).filter(i=>state.progress[i]<3);
+  if(!avail.length){ showMonkMsg('All verbs are mastered. Seek the Final Challenge.'); return; }
+  shuffle(avail).slice(0,selLimit).forEach(i=>selected.add(i));
+  renderGrid();
+}
+function selectRandomByStage(stage){
+  selected.clear();
+  let avail,label;
+  if(stage===1){ avail=VERBS.map((_,i)=>i).filter(i=>state.progress[i]===1); label='red'; }
+  else if(stage===2){ avail=VERBS.map((_,i)=>i).filter(i=>state.progress[i]===2); label='yellow'; }
+  else { avail=VERBS.map((_,i)=>i).filter(i=>state.progress[i]===1||state.progress[i]===2); label='not-mastered'; }
+  if(!avail.length){ showMonkMsg('No '+label+' verbs available, child.'); renderGrid(); return; }
+  if(avail.length<selLimit){ showMonkMsg('Only '+avail.length+' '+label+' verb'+(avail.length!==1?'s':'')+' available — taking all of them.'); }
+  shuffle(avail).slice(0,selLimit).forEach(i=>selected.add(i));
+  renderGrid();
+}
+function clearSelection(){ selected.clear(); renderGrid(); }
+function onSliderChange(){
+  selLimit=parseInt(document.getElementById('sel-slider').value,10);
+  document.getElementById('sel-slider-val').textContent=selLimit;
+  if(selected.size>selLimit){ selected=new Set(Array.from(selected).slice(0,selLimit)); renderGrid(); }
+}
+
+// START CUE
+let startCueTimer=null,startBtnObserver=null,startBtnVisible=true;
+function initStartBtnObserver(){
+  if(startBtnObserver) return;
+  const btn=document.getElementById('btn-start-study');
+  if(!('IntersectionObserver' in window)||!btn) return;
+  startBtnObserver=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ startBtnVisible=e.isIntersecting; if(startBtnVisible) hideStartCue(); });
+  },{threshold:.6});
+  startBtnObserver.observe(btn);
+}
+function manageStartCue(){
+  if(document.querySelector('.screen.active')?.id!=='s-monastery'){ hideStartCue(); return; }
+  clearTimeout(startCueTimer);
+  if(selected.size===0){ hideStartCue(); return; }
+  startCueTimer=setTimeout(()=>{ if(selected.size>0&&!startBtnVisible) showStartCue(); },3000);
+}
+function showStartCue(){
+  document.getElementById('scroll-cue').classList.add('active');
+  document.getElementById('btn-start-study').classList.add('btn-pulsing');
+}
+function hideStartCue(){
+  clearTimeout(startCueTimer);
+  document.getElementById('scroll-cue').classList.remove('active');
+  document.getElementById('btn-start-study').classList.remove('btn-pulsing');
+}
+
+// HUB
+function getInnerShrineCount(){ let c=0; state.progress.forEach(p=>{ if(p===2)c+=1; else if(p===3)c+=2; }); return c; }
+function getFailuresCount(){ return Object.keys(state.failures).length; }
+function renderHub(){
+  const innerCount=getInnerShrineCount();
+  const innerUnlocked=innerCount>=67;
+  const allMastered=state.progress.every(p=>p===3);
+  const failCount=getFailuresCount();
+  const finalUnlocked=allMastered&&failCount===0;
+  const masteredN=state.progress.filter(p=>p===3).length;
+
+  document.getElementById('hub-courtyard').innerHTML=
+    '<div class="hub-room center" onclick="goTo(\'s-monastery\')">'+
+      '<div class="hub-icon">⛩️</div><div class="hub-name">The Courtyard</div>'+
+      '<div class="hub-tag">Where verbs are first met. Train at the grounds with the verbs you choose.</div>'+
+      '<div class="hub-stat">'+masteredN+' / '+VERBS.length+' verbs mastered</div></div>';
+
+  document.getElementById('hub-inner').innerHTML=
+    '<div class="hub-room'+(innerUnlocked?'':' locked')+'"'+(innerUnlocked?' onclick="enterInnerShrine()"':'')+'>'+
+      '<div class="hub-icon">🏯</div><div class="hub-name">Inner Shrine</div>'+
+      '<div class="hub-tag">Drag-and-drop matching of yellow & green verbs.</div>'+
+      '<div class="hub-stat'+(innerUnlocked?'':' locked-stat')+'">'+(innerUnlocked?'Unlocked':innerCount+' / 67 progress')+'</div></div>';
+
+  document.getElementById('hub-failures').innerHTML=
+    '<div class="hub-room'+(failCount>0?' has-failures':' locked')+'"'+(failCount>0?' onclick="enterRoomOfFailures()"':'')+'>'+
+      '<div class="hub-icon">💀</div><div class="hub-name">Room of Failures</div>'+
+      '<div class="hub-tag">Verbs you have fallen against. Five correct attempts to release each.</div>'+
+      '<div class="hub-stat'+(failCount>0?'':' locked-stat')+'">'+(failCount>0?failCount+' verb'+(failCount!==1?'s':'')+' awaiting':'Empty — for now')+'</div></div>';
+
+  let finalLockReason='Master all verbs first';
+  if(allMastered&&failCount>0) finalLockReason='Release '+failCount+' verb'+(failCount!==1?'s':'')+' from Failures first';
+  document.getElementById('hub-final').innerHTML=
+    '<div class="hub-room'+(finalUnlocked?' unlocked-final':' locked')+'"'+(finalUnlocked?' onclick="goTo(\'s-final-intro\')"':'')+'>'+
+      '<div class="hub-icon">⚔️</div><div class="hub-name">Final Challenge</div>'+
+      '<div class="hub-tag">Three rounds. Forty seconds each. No mercy.</div>'+
+      '<div class="hub-stat'+(finalUnlocked?'':' locked-stat')+'">'+(finalUnlocked?(state.highScore!=null?'High score: '+state.highScore+'%':'Unlocked'):finalLockReason)+'</div></div>';
+
+  const attemptCount=state.hallOfFame.length;
+  document.getElementById('hub-fame').innerHTML=
+    '<div class="hub-room" onclick="goTo(\'s-hall-of-fame\')">'+
+      '<div class="hub-icon">🏅</div><div class="hub-name">Hall of Fame</div>'+
+      '<div class="hub-tag">Every Final Challenge attempt, ranked and remembered.</div>'+
+      '<div class="hub-stat">'+(attemptCount>0?attemptCount+' attempt'+(attemptCount!==1?'s':'')+' recorded':'No attempts yet')+'</div></div>';
+
+  document.getElementById('hub-knowledge').innerHTML=
+    '<div class="hub-room" onclick="goTo(\'s-knowledge-intro\')">'+
+      '<div class="hub-icon">📜</div><div class="hub-name">Hall of Knowledge</div>'+
+      '<div class="hub-tag">Flashcards for reference and self-review.</div>'+
+      '<div class="hub-stat">'+VERBS.length+' verbs available</div></div>';
+}
+
+function enterRoomOfFailures(){
+  studyQueue=Object.keys(state.failures).map(k=>parseInt(k,10));
+  shuffle(studyQueue);
+  studyIdx=0;studyMode='failures';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-study').classList.add('active');
+  renderStudyProgress();
+  loadStudyVerb();
+}
+
+function showMonkMsg(txt){
+  const box=document.getElementById('monk-monastery');
+  document.getElementById('monk-monastery-text').textContent=txt;
+  box.style.display='flex';
+}
+function showHubMonkMsg(txt){
+  const box=document.getElementById('hub-monk-box');
+  document.getElementById('hub-monk-text').textContent=txt;
+  box.style.display='flex';
+}
+
+// SUN TZU IDLE
+let idleTimer=null,lastSunTzu=-1;
+function getNextSunTzu(){ let i; do{ i=Math.floor(Math.random()*SUN_TZU.length); }while(i===lastSunTzu&&SUN_TZU.length>1); lastSunTzu=i; return SUN_TZU[i]; }
+function resetIdleTimer(){
+  clearTimeout(idleTimer);
+  if(document.querySelector('.screen.active')?.id!=='s-monastery') return;
+  idleTimer=setTimeout(function loop(){
+    if(document.querySelector('.screen.active')?.id!=='s-monastery') return;
+    showMonkMsg(getNextSunTzu());
+    idleTimer=setTimeout(loop,6000);
+  },6000);
+}
+['mousemove','keydown','mousedown','touchstart','scroll','click'].forEach(evt=>{
+  document.addEventListener(evt,()=>{ if(document.querySelector('.screen.active')?.id==='s-monastery') resetIdleTimer(); },{passive:true});
+});
+
+// ANSWER CHECK
+function isAnswerCorrect(given,canonical,verbInfinitive){
+  const g=given.trim().toLowerCase().replace(/\s+/g,'');
+  const c=canonical.trim().toLowerCase().replace(/\s+/g,'');
+  if(verbInfinitive==='be'&&c.includes('/')){ return g===c.split('/').join('/'); }
+  if(!c.includes('/')){ return g===c; }
+  const parts=c.split('/');
+  if(g===parts.join('/')) return true;
+  return parts.some(p=>g===p);
+}
+function russianFor(v){ return v[3]; }
+
+// TRAINING GROUNDS
+function startStudy(){
+  hideStartCue();
+  studyQueue=Array.from(selected);
+  shuffle(studyQueue);
+  studyIdx=0;studyMode='normal';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-study').classList.add('active');
+  renderStudyProgress();
+  loadStudyVerb();
+}
+function renderStudyProgress(){
+  const bar=document.getElementById('study-progress');
+  bar.innerHTML='';
+  studyQueue.forEach((_,qi)=>{
+    const d=document.createElement('div');
+    d.className='spp'+(qi<studyIdx?' done':qi===studyIdx?' active':'');
+    bar.appendChild(d);
+  });
+  document.getElementById('study-verb-count').textContent=
+    (studyMode==='failures'?'Room of Failures — ':'')+'Verb '+(Math.min(studyIdx+1,studyQueue.length))+' of '+studyQueue.length;
+}
+function loadStudyVerb(){
+  if(studyIdx>=studyQueue.length){ studyDone(); return; }
+  studyLocked=false;
+  const vi=studyQueue[studyIdx];
+  const v=VERBS[vi];
+  if(studyMode==='failures'&&state.failures[vi]&&Array.isArray(state.failures[vi].wrongForms)){
+    const wrong=state.failures[vi].wrongForms;
+    const allowed=[0,1,2].filter(i=>!wrong.includes(i));
+    studyPromptField=allowed.length===0?-1:allowed[Math.floor(Math.random()*allowed.length)];
+  } else {
+    studyPromptField=Math.floor(Math.random()*3);
+  }
+  if(studyPromptField===-1){
+    document.getElementById('prompt-word').textContent=v[3];
+    document.getElementById('prompt-trans').textContent='(no form given — type all three)';
+  } else {
+    document.getElementById('prompt-word').textContent=v[studyPromptField];
+    document.getElementById('prompt-trans').textContent=russianFor(v);
+  }
+  const ids=['f-inf','f-ps','f-pp'];
+  ids.forEach((id,fi)=>{
+    const el=document.getElementById(id);
+    el.className='';el.disabled=false;el.readOnly=false;
+    if(fi===studyPromptField){ el.value=v[fi];el.readOnly=true;el.className='given'; }
+    else{ el.value='';el.placeholder='…'; }
+  });
+  document.getElementById('result-msg').textContent='';
+  const fc=document.getElementById('failure-counter');
+  if(studyMode==='failures'&&state.failures[vi]){
+    const need=5-(state.failures[vi].count||0);
+    fc.textContent='This verb needs '+need+' more correct attempt'+(need!==1?'s':'')+' to be released.';
+    fc.style.display='block';
+  } else { fc.style.display='none'; }
+  const firstEmpty=ids.find(id=>!document.getElementById(id).readOnly);
+  if(firstEmpty) setTimeout(()=>document.getElementById(firstEmpty).focus(),60);
+}
+function checkAnswer(){
+  if(studyLocked) return;
+  const vi=studyQueue[studyIdx];
+  const v=VERBS[vi];
+  const ids=['f-inf','f-ps','f-pp'];
+  let allOk=true;
+  ids.forEach((id,fi)=>{
+    if(fi===studyPromptField) return;
+    const el=document.getElementById(id);
+    const ok=isAnswerCorrect(el.value,v[fi],v[0]);
+    el.className=ok?'correct':'wrong';
+    if(!ok) allOk=false;
+  });
+  const msg=document.getElementById('result-msg');
+  if(allOk){
+    studyLocked=true;
+    msg.style.color='var(--grn)';msg.textContent='✓ Correct!';
+    if(studyMode==='failures'){
+      const f=state.failures[vi]||{count:0,wrongForms:[]};
+      f.count=(f.count||0)+1;
+      state.failures[vi]=f;
+      if(f.count>=5){ delete state.failures[vi]; msg.textContent='✓ Released from the Room of Failures.'; }
+    } else {
+      state.progress[vi]=Math.min(3,state.progress[vi]+1);
+    }
+    saveState();
+    setTimeout(()=>{ studyIdx++; renderStudyProgress(); loadStudyVerb(); },850);
+  } else {
+    msg.style.color='var(--red)';msg.textContent='Not quite — try again.';
+  }
+}
+function handleStudyEnter(e){
+  if(e.key!=='Enter') return;
+  e.preventDefault();
+  if(studyLocked) return;
+  const ids=['f-inf','f-ps','f-pp'];
+  for(let fi=0;fi<3;fi++){ if(fi===studyPromptField) continue; if(!document.getElementById(ids[fi]).value.trim()) return; }
+  checkAnswer();
+}
+function studyDone(){
+  if(studyMode==='failures'){ showHubMonkMsg('You have walked through the Room of Failures. The shrine remembers.'); goTo('s-hub'); }
+  else { showMonkMsg('You have studied '+studyQueue.length+' verb'+(studyQueue.length!==1?'s':'')+'. The path holds firm.'); selected.clear(); goTo('s-monastery'); }
+}
+
+// INNER SHRINE
+function enterInnerShrine(){
+  const pool=VERBS.map((_,i)=>i).filter(i=>state.progress[i]>=2);
+  if(pool.length<3){ showMonkMsg('The Inner Shrine requires more progress, child.'); return; }
+  shrineQueue=shuffle(pool.slice()).slice(0,Math.min(7,pool.length));
+  shrineIdx=0;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-shrine').classList.add('active');
+  loadShrineVerb();
+}
+function loadShrineVerb(){
+  if(shrineIdx>=shrineQueue.length){ shrineDone(); return; }
+  const vi=shrineQueue[shrineIdx];
+  const v=VERBS[vi];
+  shrineCurrent={vi,v};
+  document.getElementById('shrine-verb-trans').textContent=russianFor(v);
+  document.getElementById('shrine-verb-rus').textContent='(infinitive: '+v[0]+')';
+  document.getElementById('shrine-verb-count').textContent='Verb '+(shrineIdx+1)+' of '+shrineQueue.length;
+  document.getElementById('shrine-result').textContent='';
+  const chunks=[{text:v[0],formIdx:0},{text:v[1],formIdx:1},{text:v[2],formIdx:2}];
+  shuffle(chunks);
+  const dz=document.getElementById('drop-zones');
+  const labels=['Infinitive','Past Simple','Past Participle'];
+  dz.innerHTML='';
+  labels.forEach((lbl,i)=>{
+    const z=document.createElement('div');
+    z.className='drop-zone';z.dataset.form=i;
+    z.innerHTML='<div class="dz-label">'+lbl+'</div>';
+    z.addEventListener('dragover',e=>{ e.preventDefault(); z.classList.add('drag-over'); });
+    z.addEventListener('dragleave',()=>z.classList.remove('drag-over'));
+    z.addEventListener('drop',e=>{ e.preventDefault(); z.classList.remove('drag-over'); handleDrop(e,z); });
+    dz.appendChild(z);
+  });
+  const pool=document.getElementById('chunk-pool');
+  pool.innerHTML='';
+  chunks.forEach(ch=>{
+    const c=document.createElement('div');
+    c.className='chunk';c.draggable=true;c.dataset.form=ch.formIdx;c.dataset.text=ch.text;c.textContent=ch.text;
+    c.addEventListener('dragstart',e=>{ c.classList.add('dragging'); e.dataTransfer.setData('text/plain',ch.formIdx+'|'+ch.text); e.dataTransfer.effectAllowed='move'; });
+    c.addEventListener('dragend',()=>c.classList.remove('dragging'));
+    pool.appendChild(c);
+  });
+  pool.addEventListener('dragover',e=>e.preventDefault());
+  pool.addEventListener('drop',e=>{ e.preventDefault(); handleDropToPool(e); });
+}
+function handleDrop(e,zone){
+  const data=e.dataTransfer.getData('text/plain');
+  if(!data) return;
+  const [formIdx,text]=data.split('|');
+  const chunk=document.querySelector('.chunk.dragging')||Array.from(document.querySelectorAll('.chunk')).find(c=>c.dataset.text===text&&c.dataset.form===formIdx);
+  if(!chunk) return;
+  const existing=zone.querySelector('.chunk');
+  if(existing) document.getElementById('chunk-pool').appendChild(existing);
+  zone.appendChild(chunk);
+  zone.classList.add('filled');
+  checkShrineComplete();
+}
+function handleDropToPool(e){
+  const data=e.dataTransfer.getData('text/plain');
+  if(!data) return;
+  const [formIdx,text]=data.split('|');
+  const chunk=document.querySelector('.chunk.dragging')||Array.from(document.querySelectorAll('.chunk')).find(c=>c.dataset.text===text&&c.dataset.form===formIdx);
+  if(!chunk) return;
+  document.getElementById('chunk-pool').appendChild(chunk);
+  document.querySelectorAll('.drop-zone').forEach(z=>{ if(!z.querySelector('.chunk')) z.classList.remove('filled'); });
+}
+function checkShrineComplete(){
+  const zones=document.querySelectorAll('.drop-zone');
+  let allFilled=true;
+  zones.forEach(z=>{ if(!z.querySelector('.chunk')) allFilled=false; });
+  if(!allFilled) return;
+  let allCorrect=true;
+  zones.forEach(z=>{
+    const ch=z.querySelector('.chunk');
+    if(ch.dataset.form===z.dataset.form){ z.classList.add('correct'); }
+    else{ z.classList.add('wrong'); allCorrect=false; }
+  });
+  const res=document.getElementById('shrine-result');
+  if(allCorrect){
+    res.style.color='var(--grn)';res.textContent='✓ Perfect placement.';
+    setTimeout(()=>{ shrineIdx++; loadShrineVerb(); },1100);
+  } else {
+    res.style.color='var(--red)';res.textContent='Not quite. Drag the misplaced forms back to the pool and retry.';
+    setTimeout(()=>{
+      zones.forEach(z=>{ if(z.classList.contains('wrong')){ z.classList.remove('wrong','filled'); const ch=z.querySelector('.chunk'); if(ch) document.getElementById('chunk-pool').appendChild(ch); } });
+      res.textContent='';
+    },1400);
+  }
+}
+function shrineDone(){ showHubMonkMsg('You have walked the Inner Shrine. Your hands now know what your mind has seen.'); goTo('s-hub'); }
+
+// FINAL CHALLENGE
+function startFinal(){
+  final.usedVerbs=new Set();
+  final.questions=[];
+  for(let r=0;r<3;r++){
+    const round=[];
+    let pool=VERBS.map((_,i)=>i).filter(i=>!final.usedVerbs.has(i));
+    if(pool.length<10) pool=VERBS.map((_,i)=>i);
+    shuffle(pool);
+    for(let q=0;q<10;q++){ round.push(pool[q]); final.usedVerbs.add(pool[q]); }
+    final.questions.push(round);
+  }
+  final.round=0;final.qIdx=0;final.roundCorrect=[0,0,0];final.totalCorrect=0;
+  goTo('s-final');
+  loadFinalQ();
+}
+function loadFinalQ(){
+  if(final.round>=3){ endFinal(); return; }
+  if(final.qIdx>=10){
+    if(final.round<2){ startRoundBreak(); } else { final.round++; endFinal(); }
+    return;
+  }
+  const vi=final.questions[final.round][final.qIdx];
+  const v=VERBS[vi];
+  document.getElementById('final-round-title').textContent='Round '+(final.round+1);
+  document.getElementById('fc-q').textContent=(final.qIdx+1)+'/10';
+  document.getElementById('fc-correct').textContent=final.roundCorrect[final.round];
+  document.getElementById('fc-round').textContent=(final.round+1)+'/3';
+  document.getElementById('final-rus').textContent=russianFor(v);
+  ['ff-inf','ff-ps','ff-pp'].forEach(id=>{ const el=document.getElementById(id); el.value='';el.className='';el.disabled=false; });
+  document.getElementById('final-feedback').textContent='';
+  final.answered=false;
+  setTimeout(()=>document.getElementById('ff-inf').focus(),60);
+  startTimer();
+}
+function startTimer(){
+  if(final.timer) clearInterval(final.timer);
+  final.timeLeft=40;
+  updateTimerUI();
+  final.timer=setInterval(()=>{
+    final.timeLeft--;
+    updateTimerUI();
+    if(final.timeLeft<=0){ clearInterval(final.timer); final.timer=null; if(!final.answered) timeoutFinalQ(); }
+  },1000);
+}
+function updateTimerUI(){
+  const fill=document.getElementById('timer-fill');
+  fill.style.width=(final.timeLeft/40*100)+'%';
+  fill.classList.remove('warn','danger');
+  if(final.timeLeft<=10) fill.classList.add('danger');
+  else if(final.timeLeft<=20) fill.classList.add('warn');
+  document.getElementById('timer-text').textContent=Math.max(0,final.timeLeft)+'s';
+}
+function timeoutFinalQ(){
+  final.answered=true;
+  const vi=final.questions[final.round][final.qIdx];
+  const v=VERBS[vi];
+  const fields=['ff-inf','ff-ps','ff-pp'];
+  let formsCorrect=0;const wrongForms=[];
+  fields.forEach((id,fi)=>{
+    const el=document.getElementById(id);
+    const ok=isAnswerCorrect(el.value,v[fi],v[0]);
+    el.className=ok?'correct':'wrong';el.disabled=true;
+    if(ok) formsCorrect++; else wrongForms.push(fi);
+  });
+  final.roundCorrect[final.round]+=formsCorrect;
+  if(formsCorrect===3) final.totalCorrect++;
+  if(formsCorrect<3){ state.failures[vi]={count:0,wrongForms}; state.progress[vi]=1; saveState(); }
+  document.getElementById('final-feedback').innerHTML='<span style="color:var(--red)">⏱ Time! +'+formsCorrect+'/3 — '+v[0]+' / '+v[1]+' / '+v[2]+'</span>';
+  setTimeout(advanceFinal,1500);
+}
+function submitFinalAnswer(){
+  if(final.answered) return;
+  final.answered=true;
+  if(final.timer){ clearInterval(final.timer); final.timer=null; }
+  const vi=final.questions[final.round][final.qIdx];
+  const v=VERBS[vi];
+  const fields=['ff-inf','ff-ps','ff-pp'];
+  let formsCorrect=0;const wrongForms=[];
+  fields.forEach((id,fi)=>{
+    const el=document.getElementById(id);
+    const ok=isAnswerCorrect(el.value,v[fi],v[0]);
+    el.className=ok?'correct':'wrong';el.disabled=true;
+    if(ok) formsCorrect++; else wrongForms.push(fi);
+  });
+  final.roundCorrect[final.round]+=formsCorrect;
+  if(formsCorrect===3) final.totalCorrect++;
+  const fb=document.getElementById('final-feedback');
+  if(formsCorrect===3){ fb.innerHTML='<span style="color:var(--grn)">✓ Perfect (+3)</span>'; }
+  else if(formsCorrect>0){ fb.innerHTML='<span style="color:var(--yel)">+'+formsCorrect+'/3 — '+v[0]+' / '+v[1]+' / '+v[2]+'</span>'; state.failures[vi]={count:0,wrongForms}; state.progress[vi]=1; saveState(); }
+  else { fb.innerHTML='<span style="color:var(--red)">✗ 0/3 — '+v[0]+' / '+v[1]+' / '+v[2]+'</span>'; state.failures[vi]={count:0,wrongForms}; state.progress[vi]=1; saveState(); }
+  setTimeout(advanceFinal,formsCorrect===3?900:1700);
+}
+function handleFinalEnter(e){
+  if(e.key!=='Enter') return;
+  const ids=['ff-inf','ff-ps','ff-pp'];
+  for(let i=0;i<3;i++){ if(!document.getElementById(ids[i]).value.trim()) return; }
+  submitFinalAnswer();
+}
+function advanceFinal(){ final.qIdx++; loadFinalQ(); }
+function startRoundBreak(){
+  if(final.timer){ clearInterval(final.timer); final.timer=null; }
+  const finishedRound=final.round+1;
+  const nextRound=final.round+2;
+  const r=final.roundCorrect[final.round];
+  document.getElementById('break-just-finished').textContent='Round '+finishedRound+' complete — '+r+' / 30 points';
+  document.getElementById('break-next-up').textContent='Round '+nextRound+' begins shortly';
+  const lines=['"Steady the breath. The path continues."','"What is past is past. Look only at what comes next."','"The mountain does not hurry, and yet it arrives."','"Drink water. Stretch. Return."'];
+  document.getElementById('break-monk-text').textContent=lines[Math.floor(Math.random()*lines.length)];
+  goTo('s-round-break');
+  let secs=5;
+  document.getElementById('break-countdown').textContent=secs;
+  if(breakTimer) clearInterval(breakTimer);
+  breakTimer=setInterval(()=>{
+    secs--;
+    document.getElementById('break-countdown').textContent=secs;
+    if(secs<=0){ clearInterval(breakTimer); breakTimer=null; final.round++; final.qIdx=0; goTo('s-final'); loadFinalQ(); }
+  },1000);
+}
+function endFinal(){
+  if(final.timer){ clearInterval(final.timer); final.timer=null; }
+  const r1=Math.round((final.roundCorrect[0]/30)*100);
+  const r2=Math.round((final.roundCorrect[1]/30)*100);
+  const r3=Math.round((final.roundCorrect[2]/30)*100);
+  const avg=Math.round((r1+r2+r3)/3);
+  const isHigh=state.highScore==null||avg>state.highScore;
+  if(isHigh){ state.highScore=avg; state.highScoreBreakdown=[r1,r2,r3]; }
+  document.getElementById('final-score-display').textContent=avg+'%';
+  state.hallOfFame.push({ts:Date.now(),total:avg,rounds:[r1,r2,r3],rawRounds:[final.roundCorrect[0],final.roundCorrect[1],final.roundCorrect[2]]});
+  saveState();
+  const wrap=document.getElementById('round-breakdown');
+  wrap.innerHTML='';
+  [r1,r2,r3].forEach((rs,i)=>{
+    const c=document.createElement('div');
+    c.className='round-card';
+    c.innerHTML='<div class="rn">Round '+(i+1)+'</div><div class="rs">'+rs+'%</div><div class="rd">'+final.roundCorrect[i]+' / 30 points</div>';
+    wrap.appendChild(c);
+  });
+  document.getElementById('hs-badge-wrap').innerHTML=isHigh?'<div class="high-score-badge">🏆 New High Score!</div>':'';
+  let monkText;
+  if(avg>=90) monkText='"You walk among masters now. The verbs answer to your call."';
+  else if(avg>=70) monkText='"A strong showing. Sharpen what slipped, and return."';
+  else if(avg>=40) monkText='"You have learned much, but the path is long. The Room of Failures awaits."';
+  else monkText='"Even masters were once where you stand. Train. Return. The shrine is patient."';
+  document.getElementById('final-monk-text').textContent=monkText;
+  goTo('s-final-results');
+}
+
+// HALL OF FAME
+let fameView='score';
+function setFameView(v){ fameView=v; renderHallOfFame(); }
+function renderHallOfFame(){
+  const list=document.getElementById('fame-list');
+  const empty=document.getElementById('fame-empty');
+  const data=state.hallOfFame.slice();
+  if(data.length===0){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const maxScore=Math.max.apply(null,data.map(a=>a.total));
+  let rows=data.map((a,i)=>({...a,attemptNo:i+1}));
+  if(fameView==='score'){ rows.sort((x,y)=>{ if(y.total!==x.total) return y.total-x.total; return y.ts-x.ts; }); }
+  else { rows.sort((x,y)=>y.ts-x.ts); }
+  const arrow=' ↓';
+  let html='<div class="lb">';
+  html+='<div class="lb-head">'+
+    '<div class="lb-cell lb-sort'+(fameView==='time'?' active':'')+'" onclick="setFameView(\'time\')">Attempt'+(fameView==='time'?arrow:'')+'</div>'+
+    '<div class="lb-cell lb-sort'+(fameView==='time'?' active':'')+'" onclick="setFameView(\'time\')">Date'+(fameView==='time'?arrow:'')+'</div>'+
+    '<div class="lb-cell">R1</div><div class="lb-cell">R2</div><div class="lb-cell">R3</div>'+
+    '<div class="lb-cell lb-sort'+(fameView==='score'?' active':'')+'" onclick="setFameView(\'score\')">Final'+(fameView==='score'?arrow:'')+'</div></div>';
+  rows.forEach(r=>{
+    const isHigh=r.total===maxScore;
+    const d=new Date(r.ts);
+    const dateStr=d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+    html+='<div class="lb-row'+(isHigh?' crown':'')+'">'+
+      '<div class="lb-cell lb-attempt">'+(isHigh?'👑 ':'')+'#'+r.attemptNo+'</div>'+
+      '<div class="lb-cell lb-date">'+dateStr+'</div>'+
+      '<div class="lb-cell">'+r.rounds[0]+'%</div>'+
+      '<div class="lb-cell">'+r.rounds[1]+'%</div>'+
+      '<div class="lb-cell">'+r.rounds[2]+'%</div>'+
+      '<div class="lb-cell lb-final">'+r.total+'%</div></div>';
+  });
+  html+='</div>';
+  html+='<p style="font-size:.78rem;color:var(--ink3);font-style:italic;text-align:center;margin-top:.8rem">Tap "Attempt", "Date", or "Final" to change sorting.</p>';
+  list.innerHTML=html;
+}
+
+// HALL OF KNOWLEDGE
+let knQueue=[],knIdx=0,knSelected=new Set(),knLimit=10;
+function startKnowledgeAll(){ knQueue=shuffle(VERBS.map((_,i)=>i).slice()); knIdx=0; goTo('s-knowledge'); loadFlashcard(); }
+function startKnowledgeSelected(){ if(knSelected.size===0) return; knQueue=shuffle(Array.from(knSelected)); knIdx=0; goTo('s-knowledge'); loadFlashcard(); }
+function buildFlashcardHTML(v){
+  return ''+
+    '<div class="kn-slide" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">'+
+      '<div onclick="flipDiagCard(this)" style="perspective:1400px;width:100%;max-width:520px;height:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;">'+
+        '<div class="kn-card" data-flipped="0" style="position:relative;width:440px;height:240px;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .7s cubic-bezier(.5,.05,.3,1),width .7s cubic-bezier(.5,.05,.3,1),height .7s cubic-bezier(.5,.05,.3,1);transform:rotate3d(1,-1,0,0deg);">'+
+          '<div style="position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fdfaf2;border:2px solid #2c2416;border-radius:6px;display:flex;align-items:center;justify-content:center;padding:1.2rem;box-shadow:0 6px 20px rgba(44,36,22,.18);box-sizing:border-box;">'+
+            '<div style="font-size:2.2rem;color:#2c2416;text-align:center;text-transform:lowercase;letter-spacing:.02em;">'+russianFor(v)+'</div>'+
+          '</div>'+
+          '<div style="position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fdfaf2;border:2px solid #2c2416;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;padding:1.4rem 1rem;box-shadow:0 6px 20px rgba(44,36,22,.18);box-sizing:border-box;transform:rotate3d(1,-1,0,180deg);">'+
+            '<div style="text-align:center;width:100%;"><div style="font-size:.95rem;color:#5a4a30;margin-bottom:.15rem;">present simple:</div><div style="font-size:1.6rem;color:#2c2416;text-transform:uppercase;letter-spacing:.04em;">'+v[0]+'</div></div>'+
+            '<div style="text-align:center;width:100%;"><div style="font-size:.95rem;color:#5a4a30;margin-bottom:.15rem;">past simple:</div><div style="font-size:1.6rem;color:#2c2416;text-transform:uppercase;letter-spacing:.04em;">'+v[1]+'</div></div>'+
+            '<div style="text-align:center;width:100%;"><div style="font-size:.95rem;color:#5a4a30;margin-bottom:.15rem;">past participle:</div><div style="font-size:1.6rem;color:#2c2416;text-transform:uppercase;letter-spacing:.04em;">'+v[2]+'</div></div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+}
+function loadFlashcard(){
+  if(knIdx>=knQueue.length){ knQueue=shuffle(knQueue); knIdx=0; }
+  const v=VERBS[knQueue[knIdx]];
+  document.getElementById('kn-count').textContent='Card '+(knIdx+1)+' of '+knQueue.length;
+  document.getElementById('flashcard-mount').innerHTML=buildFlashcardHTML(v);
+}
+function nextFlashcard(){ knIdx++; loadFlashcard(); }
+function flipDiagCard(stageEl){
+  const card=stageEl.querySelector('.kn-card');
+  if(!card) return;
+  const flipped=card.dataset.flipped==='1';
+  if(flipped){ card.style.width='440px';card.style.height='240px';card.style.transform='rotate3d(1,-1,0,0deg)';card.dataset.flipped='0'; }
+  else{ card.style.width='240px';card.style.height='380px';card.style.transform='rotate3d(1,-1,0,180deg)';card.dataset.flipped='1'; }
+}
+function renderKnGrid(){
+  const grid=document.getElementById('kn-verb-grid');
+  grid.innerHTML='';
+  VERBS.forEach((v,i)=>{
+    const d=document.createElement('div');
+    d.className='verb-card s'+state.progress[i]+(knSelected.has(i)?' selected':'');
+    const stars=['','★','★★','★★★'][state.progress[i]];
+    d.innerHTML='<span class="v-word">'+v[0]+'</span><span class="v-trans">'+russianFor(v)+'</span><span class="v-stars">'+stars+'</span>';
+    d.onclick=()=>knToggleVerb(i);
+    grid.appendChild(d);
+  });
+  document.getElementById('kn-sel-count').textContent=knSelected.size+' selected';
+  const btn=document.getElementById('kn-start-btn');
+  btn.disabled=knSelected.size===0;
+  btn.textContent='Study Selected ('+knSelected.size+')';
+}
+function knToggleVerb(i){ if(knSelected.has(i)) knSelected.delete(i); else knSelected.add(i); renderKnGrid(); }
+function knSelectRandom(){ knSelected.clear(); shuffle(VERBS.map((_,j)=>j)).slice(0,knLimit).forEach(i=>knSelected.add(i)); renderKnGrid(); }
+function knClearSelection(){ knSelected.clear(); renderKnGrid(); }
+function onKnSliderChange(){ knLimit=parseInt(document.getElementById('kn-slider').value,10); document.getElementById('kn-slider-val').textContent=knLimit; }
+
+// CONFIRM MODAL
+function showConfirm(title,text,onOk){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-text').textContent=text;
+  const ok=document.getElementById('confirm-ok');
+  const newOk=ok.cloneNode(true);
+  ok.parentNode.replaceChild(newOk,ok);
+  newOk.addEventListener('click',()=>{ closeConfirm(); onOk(); });
+  document.getElementById('confirm-modal').classList.add('active');
+}
+function closeConfirm(){ document.getElementById('confirm-modal').classList.remove('active'); }
+
+// TEACHER MODE
+const TEACHER_PW='baccano';
+let teacherMode=false,teacherSnapshot=null;
+function openTeacherPw(){
+  if(teacherMode){ openTeacher(); return; }
+  document.getElementById('teacher-pw-input').value='';
+  document.getElementById('teacher-pw-error').textContent='';
+  document.getElementById('teacher-pw-modal').classList.add('active');
+  setTimeout(()=>document.getElementById('teacher-pw-input').focus(),60);
+}
+function closeTeacherPw(){ document.getElementById('teacher-pw-modal').classList.remove('active'); }
+function submitTeacherPw(){
+  if(document.getElementById('teacher-pw-input').value!==TEACHER_PW){ document.getElementById('teacher-pw-error').textContent='Incorrect password.'; return; }
+  teacherSnapshot=JSON.parse(JSON.stringify(state));
+  teacherMode=true;
+  document.body.classList.add('teacher-mode');
+  document.getElementById('teacher-toggle').style.display='inline-block';
+  closeTeacherPw();
+  openTeacher();
+}
+function exitTeacherMode(){
+  if(!teacherMode) return;
+  if(teacherSnapshot){ state=JSON.parse(JSON.stringify(teacherSnapshot)); saveState(); }
+  teacherSnapshot=null;teacherMode=false;
+  document.body.classList.remove('teacher-mode');
+  document.getElementById('teacher-toggle').style.display='none';
+  closeTeacher();
+  selected.clear();
+  renderGrid();
+  goTo('s-hub');
+}
+function openTeacher(){ renderTeacherVerbs(); document.getElementById('teacher-modal').classList.add('active'); }
+function closeTeacher(){ document.getElementById('teacher-modal').classList.remove('active'); }
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='t'){ e.preventDefault(); openTeacherPw(); }
+  if(e.key==='Escape'){ closeTeacher(); closeConfirm(); closeTeacherPw(); }
+});
+function renderTeacherVerbs(){
+  const search=(document.getElementById('teacher-search').value||'').toLowerCase().trim();
+  const wrap=document.getElementById('teacher-verbs');
+  wrap.innerHTML='';
+  VERBS.forEach((v,i)=>{
+    if(search&&!v[0].toLowerCase().includes(search)&&!v[3].toLowerCase().includes(search)) return;
+    const row=document.createElement('div');
+    row.className='tv-row s'+state.progress[i];
+    const inFails=state.failures[i]!=null;
+    let starsHtml='<div class="tv-stars">';
+    for(let s=0;s<=3;s++){ starsHtml+='<button class="'+(state.progress[i]===s?'active':'')+'" onclick="teacherSetVerb('+i+','+s+')">'+s+'</button>'; }
+    starsHtml+='</div>';
+    row.innerHTML='<span class="tv-name">'+v[0]+'</span>'+starsHtml+'<button class="tv-fail-toggle '+(inFails?'active':'')+'" onclick="teacherToggleFailure('+i+')">F</button>';
+    wrap.appendChild(row);
+  });
+}
+function teacherSetVerb(i,stars){ state.progress[i]=stars; saveState(); renderTeacherVerbs(); renderGrid(); }
+function teacherToggleFailure(i){ if(state.failures[i]!=null) delete state.failures[i]; else state.failures[i]={count:0,wrongForms:[]}; saveState(); renderTeacherVerbs(); renderGrid(); }
+function teacherSetAll(stars){ state.progress=Array(VERBS.length).fill(stars); saveState(); renderTeacherVerbs(); renderGrid(); }
+function teacherClearFailures(){ state.failures={}; saveState(); renderTeacherVerbs(); renderGrid(); }
+function teacherResetAll(){
+  showConfirm('Reset everything?','Clears all progress, failures, and high score. The monk image is preserved.',()=>{
+    state=JSON.parse(JSON.stringify(DEFAULT_STATE)); saveState(); selected.clear(); renderGrid(); renderTeacherVerbs();
+  });
+}
+function teacherJumpInner(){
+  closeTeacher();
+  const pool=VERBS.map((_,i)=>i).filter(i=>state.progress[i]>=2);
+  shrineQueue=pool.length<3?shuffle(VERBS.map((_,i)=>i)).slice(0,7):shuffle(pool.slice()).slice(0,Math.min(7,pool.length));
+  shrineIdx=0;goTo('s-shrine');loadShrineVerb();
+}
+function teacherJumpFinal(){ closeTeacher(); goTo('s-final-intro'); }
+function teacherJumpFailures(){
+  closeTeacher();
+  if(getFailuresCount()===0){
+    showConfirm('Room is empty','There are no verbs in the Room of Failures. Add a few sample failures so you can preview the room?',()=>{
+      for(let i=0;i<5;i++) state.failures[i]={count:0,wrongForms:[]}; saveState(); enterRoomOfFailures();
+    });
+    return;
+  }
+  enterRoomOfFailures();
+}
+
+// UTIL
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+// INIT
+renderGrid();
+</script>
+</body>
+</html>
